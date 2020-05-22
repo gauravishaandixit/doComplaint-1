@@ -90,7 +90,7 @@ public class RentController {
         File fileToSave = new File("/zprojectimages/rent/"+imagename+".jpg");
         Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        String temp = "/zprojectimages/rent/"+imagename+".jpg";
+        String temp = "http://localhost:8090/downloadFile/rent/"+imagename+".jpg";
         rent.setImg_url(temp);
 
         Long flag = rentService.addRent(rent);
@@ -107,6 +107,39 @@ public class RentController {
         return rentTables;
     }
 
+    @RequestMapping(value = "/updateRent",method = RequestMethod.POST)
+    public Long updateRent(@RequestBody JsonNode jsonNode) throws IOException{
+        //if(session.getAttribute("username") == null)
+        //  return new ModelAndView("redirect:/student/login");
+
+        Rent rent = rentService.findById(jsonNode.get("id").asLong());
+
+        rent.setItem_name(jsonNode.get("title").textValue());
+        rent.setShortDesc(jsonNode.get("shortDesc").textValue());
+        rent.setDescription(jsonNode.get("description").textValue());
+        rent.setPrice(jsonNode.get("rent").toString());
+        rent.setTimestamp(new Timestamp(new Date().getTime()));
+
+        String curr_imgurl = jsonNode.get("imgUrl").asText();
+        if(curr_imgurl.startsWith("data")){
+
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            String imagename = (timestamp.toString()).replaceAll("[-+.^:, ]","");
+
+            String str = jsonNode.get("imgUrl").toString();
+            byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
+            InputStream inputStream = new ByteArrayInputStream(imagedata);
+
+            File fileToSave = new File("/zprojectimages/rent/"+imagename+".jpg");
+            Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            String temp = "http://localhost:8090/downloadFile/rent/"+imagename+".jpg";
+            rent.setImg_url(temp);
+        }
+        Long flag = rentService.updateRent(rent);
+
+        return flag;
+    }
     /*@RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public ResponseEntity<Resource> getAllRents(HttpSession session){
         //if(session.getAttribute("username") == null)

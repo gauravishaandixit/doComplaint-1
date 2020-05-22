@@ -56,6 +56,11 @@ public class RentService {
         return rent.getId();
     }
 
+    public Long updateRent(Rent rent){
+        rentRepository.save(rent);
+        return rent.getId();
+    }
+
     public List<Rent> findAll() { return (List<Rent>) rentRepository.findAll(); }
 
     public Rent findById(Long id)
