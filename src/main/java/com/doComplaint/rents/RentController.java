@@ -52,20 +52,20 @@ public class RentController {
     public Long addNewRent(@RequestBody JsonNode jsonNode) throws IOException, ServletException {
 
         System.out.println("Username:: "+ jsonNode.get("id").toString());
-        System.out.println("Username:: "+ jsonNode.get("title").toString());
-        System.out.println("Username:: "+ jsonNode.get("shortDesc").toString());
-        System.out.println("Username:: "+ jsonNode.get("description").toString());
+        System.out.println("Username:: "+ jsonNode.get("title").textValue());
+        System.out.println("Username:: "+ jsonNode.get("shortDesc").textValue());
+        System.out.println("Username:: "+ jsonNode.get("description").textValue());
         System.out.println("Username:: "+ jsonNode.get("rent").toString());
-        System.out.println("Username:: "+ jsonNode.get("enrollNo").toString());
+        System.out.println("Username:: "+ jsonNode.get("enrollNo").textValue());
         System.out.println();
 
-        Student student = studentService.findStudentByUsername("dhruvin");
+        Student student = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
 
         Rent rent = new Rent();
-        rent.setItem_name(jsonNode.get("title").toString());
+        rent.setItem_name(jsonNode.get("title").textValue());
         rent.addStudent(student);
-        rent.setShortDesc(jsonNode.get("shortDesc").toString());
-        rent.setDescription(jsonNode.get("description").toString());
+        rent.setShortDesc(jsonNode.get("shortDesc").textValue());
+        rent.setDescription(jsonNode.get("description").textValue());
         rent.setPrice(jsonNode.get("rent").toString());
         rent.setTimestamp(new Timestamp(new Date().getTime()));
 
@@ -79,59 +79,24 @@ public class RentController {
         String fileurl = "http://localhost:8090/downloadFile/rent/"+filePart.getSubmittedFileName();
         rent.setImg_url(fileurl);*/
 
-         String str = jsonNode.get("imgUrl").toString();
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        String imagename = (timestamp.toString()).replaceAll("[-+.^:, ]","");
+
+        String str = jsonNode.get("imgUrl").toString();
         byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
-        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
+        //BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
         InputStream inputStream = new ByteArrayInputStream(imagedata);
 
-        File fileToSave = new File("/zprojectimages/rent/"+"img.jpg");
+        File fileToSave = new File("/zprojectimages/rent/"+imagename+".jpg");
         Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        String temp = "/zprojectimages/rent/"+imagename+".jpg";
+        rent.setImg_url(temp);
 
         Long flag = rentService.addRent(rent);
         return flag;
     }
 
-    /*@RequestMapping(value="/addRent", method = RequestMethod.POST)
-    public Long addNewRent(RedirectAttributes redirectAttributes, HttpSession httpSession,HttpServletRequest request) throws IOException, ServletException {
-
-        Rent rent = new Rent();
-        System.out.println("Username:: "+ request.getParameter("id")+ request.getParameter("description"));
-
-        //Student student = studentService.findStudentByUsername(httpSession.getAttribute("username").toString());
-        Student student = studentService.findStudentByUsername("dhruvin");
-
-        rent.setItem_name(request.getParameter("title"));
-        rent.addStudent(student);
-        rent.setShortDesc(request.getParameter("shortDesc"));
-        rent.setDescription(request.getParameter("description"));
-        rent.setPrice(request.getParameter("rent"));
-        rent.setTimestamp(new Timestamp(new Date().getTime()));
-
-        //String root = getServletContext().getRealPath("/");
-        /*Part filePart = request.getPart("image");
-        InputStream fileInputStream = filePart.getInputStream();
-        File fileToSave = new File("/zprojectimages/rent/"+filePart.getSubmittedFileName());
-        Files.copy(fileInputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        //script command" sudo chown dhruvin:dhruvin /zprojectimages/rent/"
-        String fileurl = "http://localhost:8090/downloadFile/rent/"+filePart.getSubmittedFileName();
-        rent.setImg_url(fileurl);*/
-
-      /*  String str = request.getParameter("imgUrl");
-        byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
-        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
-        InputStream inputStream = new ByteArrayInputStream(imagedata);
-
-        File fileToSave = new File("/zprojectimages/rent/"+"img.jpg");
-        Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        Long flag = rentService.addRent(rent);
-        if(flag != 0)
-        {
-            redirectAttributes.addFlashAttribute("status","Rent Added");
-        }
-        return flag;
-    }*/
 
     @RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public List<RentTable> getAllRents(HttpSession session){
