@@ -2,6 +2,7 @@ package com.doComplaint.rents;
 
 import com.doComplaint.student.Student;
 import com.doComplaint.student.StudentService;
+import jdk.internal.util.xml.impl.Input;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,10 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
+import javax.xml.bind.DatatypeConverter;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,13 +44,13 @@ public class RentController {
     RentTable rentTable;
 
     @RequestMapping(value="/addRent", method = RequestMethod.POST)
-    public ModelAndView addNewRent(RedirectAttributes redirectAttributes, HttpSession httpSession,HttpServletRequest request) throws IOException, ServletException {
+    public Long addNewRent(RedirectAttributes redirectAttributes, HttpSession httpSession,HttpServletRequest request) throws IOException, ServletException {
 
-        ModelAndView modelAndView = null;
         Rent rent = new Rent();
         System.out.println("Username:: "+ httpSession.getAttribute("username").toString());
 
-        Student student = studentService.findStudentByUsername(httpSession.getAttribute("username").toString());
+        //Student student = studentService.findStudentByUsername(httpSession.getAttribute("username").toString());
+        Student student = studentService.findStudentByUsername("dhruvin");
 
         rent.setItem_name(request.getParameter("item_name"));
         rent.addStudent(student);
@@ -55,22 +60,29 @@ public class RentController {
         rent.setTimestamp(new Timestamp(new Date().getTime()));
 
         //String root = getServletContext().getRealPath("/");
-        Part filePart = request.getPart("image");
+        /*Part filePart = request.getPart("image");
         InputStream fileInputStream = filePart.getInputStream();
         File fileToSave = new File("/zprojectimages/rent/"+filePart.getSubmittedFileName());
         Files.copy(fileInputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         //script command" sudo chown dhruvin:dhruvin /zprojectimages/rent/"
         String fileurl = "http://localhost:8090/downloadFile/rent/"+filePart.getSubmittedFileName();
-        rent.setImg_url(fileurl);
+        rent.setImg_url(fileurl);*/
 
-        boolean flag = rentService.addRent(rent);
-        if(flag)
+        String str = request.getParameter("image");
+        byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
+        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
+        InputStream inputStream = new ByteArrayInputStream(imagedata);
+
+        File fileToSave = new File("/zprojectimages/rent/"+"img.png");
+        Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        Long flag = rentService.addRent(rent);
+        if(flag != 0)
         {
             redirectAttributes.addFlashAttribute("status","Rent Added");
-            modelAndView = new ModelAndView("redirect:/getYourRents");
         }
-        return modelAndView;
+        return flag;
     }
 
     /*@RequestMapping("/getAllRents")
@@ -95,18 +107,18 @@ public class RentController {
     }
 
     @RequestMapping("/getYourRents")
-    public ModelAndView getYourRents(HttpSession session) {
+    public List<RentTable> getYourRents(HttpSession session) {
         //if(session.getAttribute("username") == null)
           //  return new ModelAndView("redirect:/student/login");
 
-        Student student = studentService.findStudentByRollnumber(session.getAttribute("rollnumber").toString());
-
-        ModelAndView modelAndView = new ModelAndView("studentRent");
+        //Student student = studentService.findStudentByRollnumber(session.getAttribute("rollnumber").toString());
+        Student student = studentService.findStudentByRollnumber("MT2019035");
 
         List<Rent> rents = new ArrayList<>(student.getRents());
         Collections.sort(rents, (c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
-        modelAndView.addObject("data", rents);
-        return modelAndView;
+
+        List<RentTable> rentTables = rentTable.changeStructure(rents);
+        return rentTables;
 
     }
 

@@ -25,6 +25,9 @@
     <li style = "float:right"><a href="#contact">Your Profile</a></li>
 
 </ul>
+<c:forEach var="m" items="${my}">
+    ${m.flag}
+</c:forEach>
 <form action="/addRent" method="post" enctype="multipart/form-data">
     <input type="text" placeholder="Enter item name" name="item_name">
     <input type="text" placeholder="Enter Short description" name="shortDesc">

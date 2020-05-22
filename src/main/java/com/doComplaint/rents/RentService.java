@@ -47,9 +47,13 @@ public class RentService {
             }
     }
 
-    public boolean addRent(Rent rent){
+    /*public boolean addRent(Rent rent){
         rentRepository.save(rent);
         return true;
+    }*/
+    public Long addRent(Rent rent){
+        rentRepository.save(rent);
+        return rent.getId();
     }
 
     public List<Rent> findAll() { return (List<Rent>) rentRepository.findAll(); }
