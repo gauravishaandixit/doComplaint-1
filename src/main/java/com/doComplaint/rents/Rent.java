@@ -59,6 +59,10 @@ public class Rent {
         return students;
     }
 
+    public void setStudents(Set<Student> students) {
+        this.students = students;
+    }
+
     public void addStudent(Student student) {
         students.add(student);
         student.getRents().add(this);

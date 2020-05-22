@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.JsonbHttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -34,6 +35,8 @@ public class RentController {
     RentService rentService;
     @Autowired
     StudentService studentService;
+    @Autowired
+    RentTable rentTable;
 
     @RequestMapping(value="/addRent", method = RequestMethod.POST)
     public ModelAndView addNewRent(RedirectAttributes redirectAttributes, HttpSession httpSession,HttpServletRequest request) throws IOException, ServletException {
@@ -83,11 +86,12 @@ public class RentController {
     }*/
 
     @RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
-    public List<Rent> getAllRents(HttpSession session){
+    public List<RentTable> getAllRents(HttpSession session){
         //if(session.getAttribute("username") == null)
         //  return new ModelAndView("redirect:/student/login");
         List<Rent> rents = rentService.findAll();
-        return  rents;
+        List<RentTable> rentTables = rentTable.changeStructure(rents);
+        return rentTables;
     }
 
     @RequestMapping("/getYourRents")
