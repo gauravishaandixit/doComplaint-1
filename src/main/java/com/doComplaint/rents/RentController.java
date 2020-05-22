@@ -2,8 +2,12 @@ package com.doComplaint.rents;
 
 import com.doComplaint.student.Student;
 import com.doComplaint.student.StudentService;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import jdk.internal.util.xml.impl.Input;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.JsonObjectDeserializer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -47,16 +51,16 @@ public class RentController {
     public Long addNewRent(RedirectAttributes redirectAttributes, HttpSession httpSession,HttpServletRequest request) throws IOException, ServletException {
 
         Rent rent = new Rent();
-        System.out.println("Username:: "+ httpSession.getAttribute("username").toString());
+        System.out.println("Username:: "+ request.getParameter("id")+ request.getParameter("description"));
 
         //Student student = studentService.findStudentByUsername(httpSession.getAttribute("username").toString());
         Student student = studentService.findStudentByUsername("dhruvin");
 
-        rent.setItem_name(request.getParameter("item_name"));
+        rent.setItem_name(request.getParameter("title"));
         rent.addStudent(student);
         rent.setShortDesc(request.getParameter("shortDesc"));
         rent.setDescription(request.getParameter("description"));
-        rent.setPrice(request.getParameter("price"));
+        rent.setPrice(request.getParameter("rent"));
         rent.setTimestamp(new Timestamp(new Date().getTime()));
 
         //String root = getServletContext().getRealPath("/");
@@ -69,12 +73,12 @@ public class RentController {
         String fileurl = "http://localhost:8090/downloadFile/rent/"+filePart.getSubmittedFileName();
         rent.setImg_url(fileurl);*/
 
-        String str = request.getParameter("image");
+        String str = request.getParameter("imgUrl");
         byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
         BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
         InputStream inputStream = new ByteArrayInputStream(imagedata);
 
-        File fileToSave = new File("/zprojectimages/rent/"+"img.png");
+        File fileToSave = new File("/zprojectimages/rent/"+"img.jpg");
         Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         Long flag = rentService.addRent(rent);
@@ -85,18 +89,6 @@ public class RentController {
         return flag;
     }
 
-    /*@RequestMapping("/getAllRents")
-    public ModelAndView getAllRents(HttpSession session){
-        //if(session.getAttribute("username") == null)
-          //  return new ModelAndView("redirect:/student/login");
-
-        ModelAndView modelAndView = new ModelAndView("studentRent");
-
-        List<Rent> rents = rentService.findAll();
-        modelAndView.addObject("data",rents);
-        return modelAndView;
-    }*/
-
     @RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public List<RentTable> getAllRents(HttpSession session){
         //if(session.getAttribute("username") == null)
@@ -105,6 +97,24 @@ public class RentController {
         List<RentTable> rentTables = rentTable.changeStructure(rents);
         return rentTables;
     }
+
+    /*@RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
+    public List<RentTable> getAllRents(HttpSession session){
+        //if(session.getAttribute("username") == null)
+        //  return new ModelAndView("redirect:/student/login");
+        List<Rent> rents = rentService.findAll();
+
+        JsonObject jsonObject = new JsonObject();
+        JsonArray jsonArray = new JsonArray();
+
+        for(Rent r :rents){
+            JsonObject j = new JsonObject();
+            j.addProperty();
+        }
+
+        return rentTables;
+    }*/
+
 
     @RequestMapping("/getYourRents")
     public List<RentTable> getYourRents(HttpSession session) {
