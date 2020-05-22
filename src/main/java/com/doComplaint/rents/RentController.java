@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -123,6 +125,15 @@ public class RentController {
         String curr_imgurl = jsonNode.get("imgUrl").asText();
         if(curr_imgurl.startsWith("data")){
 
+            String u = rent.getImg_url();
+            String fileName = u.substring(u.lastIndexOf('/')+1);
+            System.out.println(fileName);
+            String deleteThis = "/zprojectimages/rent/"+fileName;
+            File f = new File(deleteThis);
+
+            boolean st = f.delete();
+            System.out.println(st);
+
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             String imagename = (timestamp.toString()).replaceAll("[-+.^:, ]","");
 
@@ -140,6 +151,7 @@ public class RentController {
 
         return flag;
     }
+
     /*@RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public ResponseEntity<Resource> getAllRents(HttpSession session){
         //if(session.getAttribute("username") == null)
