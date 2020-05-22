@@ -2,6 +2,7 @@ package com.doComplaint.rents;
 
 import com.doComplaint.student.Student;
 import com.doComplaint.student.StudentService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -48,6 +49,49 @@ public class RentController {
     RentTable rentTable;
 
     @RequestMapping(value="/addRent", method = RequestMethod.POST)
+    public Long addNewRent(@RequestBody JsonNode jsonNode) throws IOException, ServletException {
+
+        System.out.println("Username:: "+ jsonNode.get("id").toString());
+        System.out.println("Username:: "+ jsonNode.get("title").toString());
+        System.out.println("Username:: "+ jsonNode.get("shortDesc").toString());
+        System.out.println("Username:: "+ jsonNode.get("description").toString());
+        System.out.println("Username:: "+ jsonNode.get("rent").toString());
+        System.out.println("Username:: "+ jsonNode.get("enrollNo").toString());
+        System.out.println();
+
+        Student student = studentService.findStudentByUsername("dhruvin");
+
+        Rent rent = new Rent();
+        rent.setItem_name(jsonNode.get("title").toString());
+        rent.addStudent(student);
+        rent.setShortDesc(jsonNode.get("shortDesc").toString());
+        rent.setDescription(jsonNode.get("description").toString());
+        rent.setPrice(jsonNode.get("rent").toString());
+        rent.setTimestamp(new Timestamp(new Date().getTime()));
+
+        //String root = getServletContext().getRealPath("/");
+        /*Part filePart = request.getPart("image");
+        InputStream fileInputStream = filePart.getInputStream();
+        File fileToSave = new File("/zprojectimages/rent/"+filePart.getSubmittedFileName());
+        Files.copy(fileInputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        //script command" sudo chown dhruvin:dhruvin /zprojectimages/rent/"
+        String fileurl = "http://localhost:8090/downloadFile/rent/"+filePart.getSubmittedFileName();
+        rent.setImg_url(fileurl);*/
+
+         String str = jsonNode.get("imgUrl").toString();
+        byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
+        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
+        InputStream inputStream = new ByteArrayInputStream(imagedata);
+
+        File fileToSave = new File("/zprojectimages/rent/"+"img.jpg");
+        Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        Long flag = rentService.addRent(rent);
+        return flag;
+    }
+
+    /*@RequestMapping(value="/addRent", method = RequestMethod.POST)
     public Long addNewRent(RedirectAttributes redirectAttributes, HttpSession httpSession,HttpServletRequest request) throws IOException, ServletException {
 
         Rent rent = new Rent();
@@ -73,7 +117,7 @@ public class RentController {
         String fileurl = "http://localhost:8090/downloadFile/rent/"+filePart.getSubmittedFileName();
         rent.setImg_url(fileurl);*/
 
-        String str = request.getParameter("imgUrl");
+      /*  String str = request.getParameter("imgUrl");
         byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
         BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
         InputStream inputStream = new ByteArrayInputStream(imagedata);
@@ -87,7 +131,7 @@ public class RentController {
             redirectAttributes.addFlashAttribute("status","Rent Added");
         }
         return flag;
-    }
+    }*/
 
     @RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public List<RentTable> getAllRents(HttpSession session){
@@ -99,7 +143,7 @@ public class RentController {
     }
 
     /*@RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
-    public List<RentTable> getAllRents(HttpSession session){
+    public ResponseEntity<Resource> getAllRents(HttpSession session){
         //if(session.getAttribute("username") == null)
         //  return new ModelAndView("redirect:/student/login");
         List<Rent> rents = rentService.findAll();
@@ -109,10 +153,14 @@ public class RentController {
 
         for(Rent r :rents){
             JsonObject j = new JsonObject();
-            j.addProperty();
+            j.addProperty("id",r.getId());
+            j.addProperty("title",r.getItem_name());
+            j.addProperty("shortDesc",r.getShortDesc());
+            j.addProperty("description",r.getDescription());
+            jsonArray.add(j);
         }
-
-        return rentTables;
+        jsonObject = jsonArray.getAsJsonObject();
+        return ResponseEntity.ok().header(jsonObject.toString()).build();
     }*/
 
 
