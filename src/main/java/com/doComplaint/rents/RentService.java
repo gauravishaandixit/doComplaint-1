@@ -61,6 +61,11 @@ public class RentService {
         return rent.getId();
     }
 
+    public boolean deleteRent(Rent rent){
+        rentRepository.deleteById(rent.getId());
+        return true;
+    }
+
     public List<Rent> findAll() { return (List<Rent>) rentRepository.findAll(); }
 
     public Rent findById(Long id)

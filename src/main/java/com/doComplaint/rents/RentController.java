@@ -68,7 +68,7 @@ public class RentController {
         rent.addStudent(student);
         rent.setShortDesc(jsonNode.get("shortDesc").textValue());
         rent.setDescription(jsonNode.get("description").textValue());
-        rent.setPrice(jsonNode.get("rent").toString());
+        rent.setPrice(jsonNode.get("rent"));
         rent.setTimestamp(new Timestamp(new Date().getTime()));
 
         //String root = getServletContext().getRealPath("/");
@@ -151,6 +151,7 @@ public class RentController {
 
         return flag;
     }
+
 
     /*@RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public ResponseEntity<Resource> getAllRents(HttpSession session){
