@@ -153,6 +153,14 @@ public class RentController {
     }
 
 
+    @RequestMapping(value = "/deleteRent",method = RequestMethod.POST)
+    public boolean deleteRent(@RequestBody JsonNode jsonNode) throws IOException{
+        Long id = jsonNode.get("id").asLong();
+        boolean flag = rentService.deleteRent(id);
+        return flag;
+    }
+
+
     /*@RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
     public ResponseEntity<Resource> getAllRents(HttpSession session){
         //if(session.getAttribute("username") == null)
