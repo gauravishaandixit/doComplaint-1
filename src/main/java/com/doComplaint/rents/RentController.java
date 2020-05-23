@@ -156,7 +156,16 @@ public class RentController {
     @RequestMapping(value = "/deleteRent",method = RequestMethod.POST)
     public boolean deleteRent(@RequestBody JsonNode jsonNode) throws IOException{
         Long id = jsonNode.get("id").asLong();
+        Rent rent = rentService.findById(id);
         boolean flag = rentService.deleteRent(id);
+        if(flag){
+            String u = rent.getImg_url();
+            String fileName = u.substring(u.lastIndexOf('/')+1);
+            System.out.println(fileName);
+            String deleteThis = "/zprojectimages/rent/"+fileName;
+            File f = new File(deleteThis);
+            boolean st = f.delete();
+        }
         return flag;
     }
 
