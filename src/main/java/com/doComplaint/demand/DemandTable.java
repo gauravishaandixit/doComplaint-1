@@ -1,4 +1,4 @@
-package com.doComplaint.sells;
+package com.doComplaint.demand;
 
 import com.doComplaint.student.Student;
 import org.springframework.stereotype.Service;
@@ -10,47 +10,43 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class SellTable {
+public class DemandTable {
     private Long id;
     private Timestamp timestamp;
     private String title;
     private String shortDesc;
     private String img_url;
-    private String desc;
-    private String sell;
     private String username;
     private String rollno;
     private String roomnumber;
     private String mobilenumber;
 
-    List<SellTable> changeStructure(List<Sell> Sells)
+    List<DemandTable> changeStructure(List<Demand> Demands)
     {
-        List<SellTable> sellTables = new ArrayList<SellTable>();
-        for(Sell sell: Sells)
+        List<DemandTable> demandTables = new ArrayList<DemandTable>();
+        for(Demand demand: Demands)
         {
-            SellTable sellTable = new SellTable();
+            DemandTable demandTable = new DemandTable();
 
-            sellTable.setId(sell.getId());
-            sellTable.setTimestamp(sell.getTimestamp());
-            sellTable.setShortDesc(sell.getShortDesc());
-            sellTable.setTitle(sell.getItem_name());
-            sellTable.setDesc(sell.getDescription());
-            sellTable.setImg_url(sell.getImg_url());
-            sellTable.setSell(sell.getPrice());
-            Set<Student> student = sell.getStudents();
+            demandTable.setId(demand.getId());
+            demandTable.setTimestamp(demand.getTimestamp());
+            demandTable.setShortDesc(demand.getShortDesc());
+            demandTable.setTitle(demand.getItem_name());
+            demandTable.setImg_url(demand.getImg_url());
+            Set<Student> student = demand.getStudents();
 
             Iterator iterator = student.iterator();
             while(iterator.hasNext())
             {
                 Student student1 = (Student) iterator.next();
-                sellTable.setUsername(student1.getUsername());
-                sellTable.setRollno(student1.getRollnumber());
-                sellTable.setMobilenumber(student1.getMobilenumber());
-                sellTable.setRoomnumber(student1.getRoomnumber());
+                demandTable.setUsername(student1.getUsername());
+                demandTable.setRollno(student1.getRollnumber());
+                demandTable.setMobilenumber(student1.getMobilenumber());
+                demandTable.setRoomnumber(student1.getRoomnumber());
             }
-            sellTables.add(sellTable);
+            demandTables.add(demandTable);
         }
-        return sellTables;
+        return demandTables;
     }
 
     public Long getId() {
@@ -91,22 +87,6 @@ public class SellTable {
 
     public void setImg_url(String img_url) {
         this.img_url = img_url;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public String getSell() {
-        return sell;
-    }
-
-    public void setSell(String sell) {
-        this.sell = sell;
     }
 
     public String getUsername() {

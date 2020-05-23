@@ -31,9 +31,27 @@ public class SellService {
         }
     }
 
-    public boolean addSell(Sell sell){
+    public Long addSell(Sell sell){
         sellRepository.save(sell);
-        return true;
+        return sell.getId();
+    }
+
+    public Long updateSell(Sell sell){
+        sellRepository.save(sell);
+        return sell.getId();
+    }
+
+    public boolean deleteSell(Long id){
+        Sell sell = sellRepository.findById(id).orElse(null);
+        System.out.println(sell.getId());
+        if(sell == null){
+            return false;
+        }
+        else{
+            //rentRepository.delete(rent);
+            sellRepository.deleteByMyId(sell.getId());
+            return true;
+        }
     }
 
     public List<Sell> findAll() {return (List<Sell>)sellRepository.findAll(); }

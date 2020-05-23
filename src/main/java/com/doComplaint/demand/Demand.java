@@ -17,7 +17,7 @@ public class Demand {
     private String shortDesc;
     private String img_url;
 
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "sells", cascade = CascadeType.PERSIST)
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "demands", cascade = CascadeType.PERSIST)
     private Set<Student> students = new HashSet<>();
 
     public Long getId() {

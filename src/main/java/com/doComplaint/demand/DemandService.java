@@ -30,9 +30,27 @@ public class DemandService {
         }
     }
 
-    public boolean addDemand(Demand demand){
+    public Long addDemand(Demand demand){
         demandRepository.save(demand);
-        return true;
+        return demand.getId();
+    }
+
+    public Long updateDemand(Demand demand){
+        demandRepository.save(demand);
+        return demand.getId();
+    }
+
+    public boolean deleteSell(Long id){
+        Demand demand = demandRepository.findById(id).orElse(null);
+        System.out.println(demand.getId());
+        if(demand == null){
+            return false;
+        }
+        else{
+            //rentRepository.delete(rent);
+            demandRepository.deleteByMyId(demand.getId());
+            return true;
+        }
     }
 
     public List<Demand> findAll() {return (List<Demand>)demandRepository.findAll(); }

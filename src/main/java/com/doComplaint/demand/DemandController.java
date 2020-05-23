@@ -3,6 +3,7 @@ package com.doComplaint.demand;
 
 import com.doComplaint.student.Student;
 import com.doComplaint.student.StudentService;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -35,63 +36,77 @@ public class DemandController {
     DemandService demandService;
     @Autowired
     StudentService studentService;
+    @Autowired
+    DemandTable demandTable;
 
     @RequestMapping(value = "/addDemand",method = RequestMethod.POST)
-    public ModelAndView addNewDemand(RedirectAttributes redirectAttributes, HttpSession httpSession, HttpServletRequest request) throws IOException, ServletException, IOException, ServletException {
-        ModelAndView modelAndView = null;
+    public Long addNewDemand(@RequestBody JsonNode jsonNode) throws IOException {
+        System.out.println("Username:: "+ jsonNode.get("id").toString());
+        System.out.println("Username:: "+ jsonNode.get("title").textValue());
+        System.out.println("Username:: "+ jsonNode.get("shortDesc").textValue());
+        System.out.println("Username:: "+ jsonNode.get("imgUrl").toString());
+        System.out.println("Username:: "+ jsonNode.get("enrollNo").textValue());
+        System.out.println();
+
         Demand demand = new Demand();
 
-        Student student = studentService.findStudentByUsername(httpSession.getAttribute("username").toString());
+        Student student = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
 
-        demand.setItem_name(request.getParameter("item_name"));
+        demand.setItem_name(jsonNode.get("title").textValue());
         demand.addStudent(student);
-        demand.setShortDesc(request.getParameter("shortDesc"));
+        demand.setShortDesc(jsonNode.get("shortDesc").textValue());
         demand.setTimestamp(new Timestamp(new Date().getTime()));
+        demand.setImg_url(jsonNode.get("imgUrl").textValue());
 
-        //String root = getServletContext().getRealPath("/");
-        Part filePart = request.getPart("image");
-        InputStream fileInputStream = filePart.getInputStream();
-        File fileToSave = new File("/zprojectimages/request/"+filePart.getSubmittedFileName());
-        Files.copy(fileInputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Long flag = demandService.addDemand(demand);
 
-        //script command" sudo chown dhruvin:dhruvin /zprojectimages/rent/"
-        String fileurl = "http://localhost:8090/downloadFile/request/"+filePart.getSubmittedFileName();
-        demand.setImg_url(fileurl);
-
-        boolean flag = demandService.addDemand(demand);
-        if(flag)
-        {
-            redirectAttributes.addFlashAttribute("status","Demand Added");
-            modelAndView = new ModelAndView("redirect:/getYourDemands");
-        }
-        return modelAndView;
+        return flag;
     }
 
     @RequestMapping("/getAllDemands")
-    public ModelAndView getAllDemands(HttpSession session){
+    public List<DemandTable> getAllDemands(HttpSession session){
         //if(session.getAttribute("username") == null)
          //   return new ModelAndView("redirect:/student/login");
 
-        ModelAndView modelAndView = new ModelAndView("studentDemand");
-
-        List<Demand> sells = demandService.findAll();
-        modelAndView.addObject("data",sells);
-        return modelAndView;
+        List<Demand> demands = demandService.findAll();
+        List<DemandTable> demandTables =demandTable.changeStructure(demands);
+        return demandTables;
     }
 
-    @RequestMapping("/getYourDemands")
-    public ModelAndView getYourDemands(HttpSession session) {
+    @RequestMapping(value = "/updateDemand",method = RequestMethod.POST)
+    public Long updateDemand(@RequestBody JsonNode jsonNode){
+        Demand demand = demandService.findById(jsonNode.get("id").asLong());
+
+        demand.setItem_name(jsonNode.get("title").textValue());
+        demand.setShortDesc(jsonNode.get("shortDesc").textValue());
+        demand.setTimestamp(new Timestamp(new Date().getTime()));
+        demand.setImg_url(jsonNode.get("imgUrl").textValue());
+
+        Long flag = demandService.updateDemand(demand);
+        return flag;
+    }
+
+    @RequestMapping(value = "/deleteDemand",method = RequestMethod.POST)
+    public boolean deleteDemand(@RequestBody JsonNode jsonNode) throws IOException{
+        Long id = jsonNode.get("id").asLong();
+        boolean flag = demandService.deleteSell(id);
+        return flag;
+    }
+
+
+
+    @RequestMapping(value = "/getYourDemands",method = RequestMethod.POST)
+    public List<DemandTable> getYourDemands(@RequestBody JsonNode jsonNode) {
         //if(session.getAttribute("username") == null)
           //  return new ModelAndView("redirect:/student/login");
 
-        Student student = studentService.findStudentByRollnumber(session.getAttribute("rollnumber").toString());
+        Student student = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
 
-        ModelAndView modelAndView = new ModelAndView("studentDemand");
 
         List<Demand> demands = new ArrayList<>(student.getDemands());
         Collections.sort(demands, (c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
-        modelAndView.addObject("data", demands);
-        return modelAndView;
+        List<DemandTable> demandTables = demandTable.changeStructure(demands);
+        return demandTables;
     }
 
     @GetMapping("/downloadFile/request/{fileName:.+}")
