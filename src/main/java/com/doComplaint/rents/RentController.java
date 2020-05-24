@@ -101,7 +101,7 @@ public class RentController {
 
 
     @RequestMapping(value = "/getAllRents",method = RequestMethod.GET)
-    public List<RentTable> getAllRents(HttpSession session){
+    public List<RentTable> getAllRents(){
         //if(session.getAttribute("username") == null)
         //  return new ModelAndView("redirect:/student/login");
         List<Rent> rents = rentService.findAll();

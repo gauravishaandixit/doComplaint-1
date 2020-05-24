@@ -2,6 +2,7 @@ package com.doComplaint.student;
 
 
 import com.doComplaint.complaints.Complaint;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -18,90 +19,60 @@ public class StudentController {
     @Autowired
     StudentService studentService;
 
-    @RequestMapping("/login")
-    ModelAndView showLoginPage()
+    @RequestMapping(value = "/logincheck", method = RequestMethod.POST)
+    String checkLogin(@RequestBody Student student)
     {
-        return new ModelAndView("student","studentloginform", new Student());
-    }
-
-    @RequestMapping("/logincheck")
-    ModelAndView checkLogin(@ModelAttribute("studentloginform") Student student, HttpSession session, RedirectAttributes redirectAttributes)
-    {
-        ModelAndView model = null;
         boolean exists = studentService.doesStudentExists(student);
+        System.out.println("Hello "+ exists);
         if(exists)
         {
-            model = new ModelAndView("redirect:/student/yourcomplaints");
-            session.setAttribute("username", student.getUsername());
-
-            student = studentService.findStudentByUsername(student.getUsername());
-            session.setAttribute("rollnumber", student.getRollnumber());
+            return "TRUE";
         }
-        else
-        {
-            model = new ModelAndView("redirect:/student/login");
-            redirectAttributes.addFlashAttribute("nouser", "User Not Found or Wrong Username/Password");
-        }
-        return model;
-    }
-
-    @RequestMapping("/register")
-    public ModelAndView showRegisterPage()
-    {
-        return new ModelAndView("studentRegister","studentregisterform", new Student());
+        return "FALSE";
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public ModelAndView addStudent(@ModelAttribute("studentregisterform") Student student)
+    public String addStudent(@RequestBody Student student)
     {
-        ModelAndView model = null;
-        boolean exists = studentService.addStudent(student);
-        if(!exists)
+        Student student1 = studentService.findStudentByRollnumber(student.getRollnumber());
+        if(student1 == null)
         {
-            model = new ModelAndView("studentRegister","studentregisterform",new Student());
-            model.addObject("result","Registered Successfully");
+            studentService.addStudent(student);
+            return "Registration Successfull.";
         }
-        else
-        {
-            model = new ModelAndView("studentRegister","studentregisterfrom", new Student());
-            model.addObject("result","User Already Exists");
-        }
-        return model;
+        return "User Already Exists!!!";
     }
 
-    @RequestMapping("/yourcomplaints")
-    public ModelAndView getAllComplaints(HttpSession session)
+    @RequestMapping(value = "/updateProfile",method = RequestMethod.POST)
+    public String changePhoto(@RequestBody JsonNode jsonNode){
+        Student student = studentService.findStudentByRollnumber(jsonNode.get("rollnumber").textValue());
+
+        student.setImgUrl(jsonNode.get("imgUrl").textValue());
+        String flag = studentService.updateURL(student);
+        return flag;
+    }
+
+    @RequestMapping(value = "/yourcomplaints/{rollnumber}", method = RequestMethod.GET)
+    public List<StudentComplaintTable> getAllComplaints(@PathVariable String rollnumber)
     {
-        if(session.getAttribute("username") == null)
-            return new ModelAndView("redirect:/student/login");
+        System.out.println("you are:: "+rollnumber);
+        Student student = studentService.findStudentByRollnumber(rollnumber);
 
-        Student student = studentService.findStudentByRollnumber(session.getAttribute("rollnumber").toString());
-
-        ModelAndView modelAndView = new ModelAndView("studentComplaints");
-
+        System.out.println("you are::: "+student.getUsername());
         List<Complaint> complaints = new ArrayList<>(student.getComplaints());
-        Collections.sort(complaints, (c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
-        modelAndView.addObject("data",complaints);
-        return modelAndView;
+        Collections.sort(complaints, (c1, c2) -> c2.getId().compareTo(c1.getId()));
+
+        List<StudentComplaintTable> studentComplaintTableList = new StudentComplaintTable().changeStructure(complaints);
+        return studentComplaintTableList;
     }
 
-    @RequestMapping("/logout")
-    ModelAndView logMeOut(HttpSession session, RedirectAttributes attributes)
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    public String updateStatus(@RequestBody Complaint complaint)
     {
-        ModelAndView model = null;
-        model = new ModelAndView("redirect:/student/login");
-        attributes.addFlashAttribute("loggedout","Successfully Logged Out");
-        session.invalidate();
-        return model;
-    }
-
-    @RequestMapping("/tradeView")
-    public ModelAndView getTradeView(HttpSession httpSession){
-        if(httpSession.getAttribute("username") == null ){
-            return new ModelAndView("redirect:/student/login");
-        }
-         ModelAndView modelAndView = new ModelAndView("studentRent");
-
-        return modelAndView;
+        System.out.println("In Update");
+        System.out.println(complaint.getId());
+        String flag = studentService.updateStatus(complaint.getId());
+        System.out.println(flag);
+        return  flag;
     }
 }

@@ -17,9 +17,11 @@ public class Student {
     @Column(unique = true)
     private String rollnumber;
     private String username;
+    private String imgUrl;
     private String password;
     private String roomnumber;
     private String mobilenumber;
+
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
@@ -86,14 +88,6 @@ public class Student {
         this.rollnumber = rollnumber;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getRoomnumber() {
         return roomnumber;
     }
@@ -117,6 +111,18 @@ public class Student {
     public void setMobilenumber(String mobilenumber) {
         this.mobilenumber = mobilenumber;
     }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getImgUrl() { return imgUrl;    }
+
+    public void setImgUrl(String imgUrl) { this.imgUrl = imgUrl;  }
 
     public Set<Complaint> getComplaints() {
         return complaints;

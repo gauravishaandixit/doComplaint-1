@@ -31,25 +31,19 @@ public class ComplaintController {
     }
 
     @RequestMapping(value = "/addComplaint", method = RequestMethod.POST)
-    public ModelAndView addNewComplaint(RedirectAttributes redirectAttributes, HttpSession httpSession, HttpServletRequest request)
+    public String addNewComplaint(@RequestBody StudentComplaint studentComplaint)
     {
-        ModelAndView modelAndView = null;
         Complaint complaint = new Complaint();
-        System.out.println("Username:: "+ httpSession.getAttribute("username").toString());
+        System.out.println("Add Complaint Username:: "+ studentComplaint.getRollnumber());
 
-        Student student = studentService.findStudentByUsername(httpSession.getAttribute("username").toString());
+        Student student = studentService.findStudentByRollnumber(studentComplaint.getRollnumber());
 
-        complaint.setIssue(request.getParameter("issue"));
+        complaint.setIssue(studentComplaint.getIssue());
         complaint.addStudent(student);
         complaint.setStatus("unresolved");
         complaint.setTimestamp(new Timestamp(new Date().getTime()));
 
         boolean flag = complaintService.addComplaint(complaint);
-        if(flag)
-        {
-            redirectAttributes.addFlashAttribute("status","Complaint Added");
-            modelAndView = new ModelAndView("redirect:/student/yourcomplaints");
-        }
-        return modelAndView;
+        return "Added Successfully.";
     }
 }
