@@ -22,91 +22,54 @@ public class    AdminController {
     @Autowired
     ComplaintTable complaintTable;
 
-    @RequestMapping("/login")
-    public ModelAndView showLoginPage() {
-        return new ModelAndView("admin", "adminloginform", new Admin());
-    }
-
     @RequestMapping(value = "/logincheck", method = RequestMethod.POST)
-    public ModelAndView loginCheck(@ModelAttribute("adminloginform") Admin admin, HttpSession session, RedirectAttributes redirectAttributes) {
-        ModelAndView model;
+    public String loginCheck(@RequestBody Admin admin) {
         Boolean isExist = adminService.doesAdminExists(admin);
-        if (isExist) {
-            model = new ModelAndView("redirect:/admin/complaints");
-            session.setAttribute("username", admin.getUsername());
-        } else {
-            model = new ModelAndView("redirect:/admin/login");
-            redirectAttributes.addFlashAttribute("nouser", "User Not Found or Wrong Username/Password");
+        if (isExist)
+            return "True";
+        else
+        {
+            return "False";
         }
-        return model;
-    }
-
-    @RequestMapping(value = "/register")
-    public ModelAndView register() {
-        return new ModelAndView("adminRegister", "adminregisterform", new Admin());
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public ModelAndView addAdmin(@ModelAttribute("adminregisterform") Admin admin, HttpServletRequest request) {
-        ModelAndView model = null;
-
-        if (request.getParameter("rootpassword").equals("iiitbadmin")) {
-            boolean exists = adminService.addAdmin(admin);
-            if (exists) {
-                model = new ModelAndView("adminRegister", "adminregisterform", new Admin());
-                model.addObject("result", "User/Mobile Already Exists");
-            } else {
-                model = new ModelAndView("adminRegister", "adminregisterform", new Admin());
-                model.addObject("result", "Registered Successfully");
-            }
-        } else {
-            model = new ModelAndView("adminRegister", "adminregisterform", new Admin());
-            model.addObject("result", "Wrong Root Password");
-        }
-        return model;
+    public String addAdmin(@RequestBody Admin admin) {
+        if(!adminService.addAdmin(admin))
+            return "Successfully Registered";
+        else
+            return "Admin or Mobile Number Already Present";
     }
 
-    @RequestMapping("/complaints")
-    ModelAndView getUnresolvedComplaints(HttpSession session) {
-
-        if (session.getAttribute("username") == null)
-            return new ModelAndView("redirect:/admin/login");
+    @RequestMapping("/uncomplaints")
+    public List<ComplaintTable> getUnresolvedComplaints() {
         List<Complaint> complaints = adminService.findByStatus();;
-        Collections.sort(complaints, (c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
+        Collections.sort(complaints, (c1, c2) -> c2.getId().compareTo(c1.getId()));
 
         List<ComplaintTable> complaintTableList = complaintTable.changeStructure(complaints);
-        ModelAndView model = new ModelAndView("allComplaints");
-        model.addObject("data", complaintTableList);
-        return model;
+
+        return complaintTableList;
     }
 
-    @RequestMapping("/complaints/all")
-    ModelAndView findAll(HttpSession session)
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    public String updateStatus(@RequestBody Complaint complaint)
     {
-        if (session.getAttribute("username") == null)
-            return new ModelAndView("redirect:/admin/login");
+        System.out.println("In Update");
+        System.out.println(complaint.getId());
+        String flag = adminService.updateStatus(complaint.getId());
+        System.out.println(flag);
+        return  flag;
+    }
+
+
+    @RequestMapping("/allcomplaints")
+    public List<ComplaintTable> findAll()
+    {
         List<Complaint> complaints = adminService.findAll();
 
-        Collections.sort(complaints, (c1, c2) -> c2.getTimestamp().compareTo(c1.getTimestamp()));
+        Collections.sort(complaints, (c1, c2) -> c2.getId().compareTo(c1.getId()));
 
         List<ComplaintTable> complaintTableList = complaintTable.changeStructure(complaints);
-        ModelAndView model = new ModelAndView("allComplaints");
-        model.addObject("data", complaintTableList);
-        return model;
-    }
-    @RequestMapping("/logout")
-    ModelAndView logMeOut(HttpSession session, RedirectAttributes attributes) {
-        ModelAndView model = null;
-        model = new ModelAndView("redirect:/admin/login");
-        attributes.addFlashAttribute("loggedout", "Successfully Logged Out");
-        session.invalidate();
-        return model;
-    }
-
-    @RequestMapping("/update/{id}")
-    ModelAndView updateStatus(@PathVariable Long id)
-    {
-        adminService.updateStatus(id);
-        return  new ModelAndView("redirect:/admin/complaints");
+        return complaintTableList;
     }
 }
