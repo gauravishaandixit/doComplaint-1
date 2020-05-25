@@ -6,7 +6,7 @@ node {
             dockerImage = ''
              dockerImageLatest = ''
         }
-
+        agent any
     	stage('Clone Repository') {
 			echo "Poolig git gepository..."
 			git "https://github.com/dhruvin32/doComplaint.git"
