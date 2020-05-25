@@ -4,7 +4,7 @@ node {
             registry = "dhruvin32/docomplaintbackend"
             registryCredential = 'docker-hub-credentials'
             dockerImage = ''
-             dockerImageLatest = ''
+             //dockerImageLatest = ''
         }
         agent any
     	stage('Clone Repository') {
@@ -36,7 +36,7 @@ node {
                steps{
                  script {
                    dockerImage = docker.build registry + ":$BUILD_NUMBER"
-                   dockerImageLatest = docker.build registry + ":latest"
+                   //dockerImageLatest = docker.build registry + ":latest"
                  }
                }
             }
@@ -46,7 +46,7 @@ node {
              script {
                docker.withRegistry( '', registryCredential ) {
                  dockerImage.push()
-                 dockerImageLatest.push()
+                 //dockerImageLatest.push()
                }
              }
            }
