@@ -5,7 +5,9 @@ pipeline {
             dockerImage = ''
              //dockerImageLatest = ''
         }
+
         agent any
+        stages{
     	stage('Clone Repository') {
 			echo "Poolig git gepository..."
 			git "https://github.com/dhruvin32/doComplaint.git"
@@ -54,5 +56,6 @@ pipeline {
                steps{
                  sh "docker rmi $registry:$BUILD_NUMBER"
                }
+         }
          }
 }
