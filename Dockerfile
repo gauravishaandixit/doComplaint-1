@@ -1,4 +1,4 @@
-FROM openjdk:8
-EXPOSE 8080
-ADD target/doComplaint.jar doComplaint.jar
-ENTRYPOINT ["java", "-jar", "/doComplaint.jar"]
+FROM openjdk:8-jdk
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
