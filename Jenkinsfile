@@ -1,5 +1,4 @@
-node {
-	    def app
+pipeline {
         environment {
             registry = "dhruvin32/docomplaintbackend"
             registryCredential = 'docker-hub-credentials'
