@@ -1,71 +1,48 @@
-pipeline {
-        environment {
-            registry = "dhruvin32/docomplaintbackend"
-            registryCredential = 'docker-hub-credentials'
-            dockerImage = ''
-             //dockerImageLatest = ''
-        }
+node {
 
-        agent any
-        stages{
-    	    stage('Clone Repository') {
-			        steps{
-			        echo "Poolig git gepository..."
-			        git "https://github.com/dhruvin32/doComplaint.git"
-			        }
-    	        }
+	    def app
+
+    	stage('Clone Repository') {
+			echo "Poolig git gepository..."
+			git "https://github.com/dhruvin32/doComplaint.git"
+    	}
 
     	stage('Clean & Validate') {
-    	    steps{
 			echo "Cleaning privious targets..."
 			sh " mvn clean validate"
-			}
+    	}
+
+    	stage('Compile') {
+			echo "Compiling source code..."
+			sh " mvn compile"
     	}
 
     	stage('Test') {
-    	    steps{
 			echo "Performing unit testing..."
 			sh " mvn test"
-			}
     	}
 
     	stage('Package') {
-    	    steps{
 			echo "Packaging the project and generating jars..."
 			sh " mvn package"
-			}
     	}
 
     	stage('verify') {
-        	steps{
         	echo "Performing integration testing..."
         	sh " mvn verify"
-        	}
         }
 
-        stage('Building image') {
-               steps{
-                 script {
-                   dockerImage = docker.build registry + ":$BUILD_NUMBER"
-                   //dockerImageLatest = docker.build registry + ":latest"
-                 }
-               }
-            }
+    	stage('Build Image') {
+			echo "Generating docker image..."
+        	app = docker.build("dhruvin32/docomplaintbackend")
+    	}
 
-        stage('Deploy Image') {
-           steps{
-             script {
-               docker.withRegistry( '', registryCredential ) {
-                 dockerImage.push()
-                 //dockerImageLatest.push()
-               }
-             }
-           }
-        }
-         stage('Remove Unused docker image') {
-               steps{
-                 sh "docker rmi $registry:$BUILD_NUMBER"
-               }
-         }
-         }
+    	stage('Push Image') {
+			echo "Uploading docker image to docker hub..."
+			docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+		    		app.push("${env.BUILD_NUMBER}")
+		    		app.push("latest")
+			}
+    	}
+
 }
