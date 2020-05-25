@@ -8,7 +8,7 @@
 		<version>2.2.7.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<groupId>com.doComplaint.devops</groupId>
 	<artifactId>doComplaint</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
