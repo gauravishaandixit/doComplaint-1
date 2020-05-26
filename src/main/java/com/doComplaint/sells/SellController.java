@@ -84,7 +84,7 @@ public class SellController {
         File fileToSave = new File("/zprojectimages/sell/"+imagename+".jpg");
         Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        String temp = "http://localhost:8090/downloadFile/sell/"+imagename+".jpg";
+        String temp = "http://172.17.0.2:8090/downloadFile/sell/"+imagename+".jpg";
         sell.setImg_url(temp);
 
         Long flag = sellService.addSell(sell);
@@ -136,7 +136,7 @@ public class SellController {
             File fileToSave = new File("/zprojectimages/sell/"+imagename+".jpg");
             Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            String temp = "http://localhost:8090/downloadFile/sell/"+imagename+".jpg";
+            String temp = "http://172.17.0.2:8090/downloadFile/sell/"+imagename+".jpg";
             sell.setImg_url(temp);
         }
         Long flag = sellService.updateSell(sell);

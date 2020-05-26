@@ -147,7 +147,7 @@ public class RentController {
             File fileToSave = new File("/zprojectimages/rent/"+imagename+".jpg");
             Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            String temp = "http://localhost:8090/downloadFile/rent/"+imagename+".jpg";
+            String temp = "http://172.17.0.2:8090/downloadFile/rent/"+imagename+".jpg";
             rent.setImg_url(temp);
         }
         Long flag = rentService.updateRent(rent);
