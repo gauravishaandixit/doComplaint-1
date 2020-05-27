@@ -43,6 +43,14 @@ public class StudentController {
         return "User Already Exists!!!";
     }
 
+    @RequestMapping(value = "/viewProfile", method = RequestMethod.POST)
+    public StudentTable viewProfile(@RequestBody JsonNode jsonNode)
+    {
+        Student student1 = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
+        StudentTable studentTables = new StudentTable().changeStructure(student1);
+        return studentTables;
+    }
+
     @RequestMapping(value = "/updateProfile",method = RequestMethod.POST)
     public String changePhoto(@RequestBody JsonNode jsonNode){
         Student student = studentService.findStudentByRollnumber(jsonNode.get("rollnumber").textValue());
