@@ -3,8 +3,15 @@ package com.doComplaint.student;
 import com.doComplaint.complaints.Complaint;
 import com.doComplaint.complaints.ComplaintService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -14,6 +21,14 @@ public class StudentService {
     StudentRepository studentRepository;
     @Autowired
     ComplaintService complaintService;
+
+    private JavaMailSender javaMailSender;
+    private Path fileStorageLocation = Paths.get("/zprojectimages/profile/");
+
+    @Autowired
+    public StudentService(JavaMailSender javaMailSender){
+        this.javaMailSender = javaMailSender;
+    }
 
     boolean doesStudentExists(Student student)
     {
@@ -62,5 +77,36 @@ public class StudentService {
     public String updateURL(Student student){
         studentRepository.save(student);
         return student.getRollnumber();
+    }
+
+    public void sendEmail(Student owner,Student requester){
+        String email = requester.getEmail();
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(email);
+        mailMessage.setSubject("demand accepted");
+
+        String mailContent = "your request is accepted, details of owner is followed \n";
+        mailContent += "username: " + owner.getUsername() + "\n";
+        mailContent += "roomno: " + owner.getRoomnumber() + "\n";
+        mailContent += "email: " + owner.getEmail() + "\n";
+        mailContent += "mobileno: " + owner.getMobilenumber() + "\n";
+
+        mailMessage.setText(mailContent);
+
+        System.out.println(mailContent);
+        javaMailSender.send(mailMessage);
+    }
+
+    public Resource loadFileAsResource(String fileName) throws MalformedURLException {
+
+        Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+        Resource resource = new UrlResource(filePath.toUri());
+        if(resource.exists()) {
+            return resource;
+        } else {
+            System.out.println("File not found " + fileName);
+            return null;
+        }
     }
 }

@@ -4,11 +4,24 @@ package com.doComplaint.student;
 import com.doComplaint.complaints.Complaint;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.sql.Timestamp;
 import java.util.*;
 
 @CrossOrigin("*")
@@ -37,6 +50,7 @@ public class StudentController {
         Student student1 = studentService.findStudentByRollnumber(student.getRollnumber());
         if(student1 == null)
         {
+            student.setImgUrl("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
             studentService.addStudent(student);
             return "Registration Successfull.";
         }
@@ -52,10 +66,34 @@ public class StudentController {
     }
 
     @RequestMapping(value = "/updateProfile",method = RequestMethod.POST)
-    public String changePhoto(@RequestBody JsonNode jsonNode){
-        Student student = studentService.findStudentByRollnumber(jsonNode.get("rollnumber").textValue());
+    public String changePhoto(@RequestBody JsonNode jsonNode) throws IOException {
+        Student student = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
 
-        student.setImgUrl(jsonNode.get("imgUrl").textValue());
+        String curr_imgurl = jsonNode.get("imgUrl").asText();
+        if(curr_imgurl.startsWith("data")){
+
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            String imagename = (timestamp.toString()).replaceAll("[-+.^:, ]","");
+
+            String str = jsonNode.get("imgUrl").toString();
+            byte[] imagedata = DatatypeConverter.parseBase64Binary(str.substring(str.indexOf(",") + 1));
+            InputStream inputStream = new ByteArrayInputStream(imagedata);
+
+            File directory = new File("/zprojectimages/profile");
+            if(!directory.exists()){
+                directory.mkdir();
+            }
+
+            File fileToSave = new File("/zprojectimages/profile/"+imagename+".jpg");
+            Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            String temp = "http://172.17.0.2:8090/downloadFile/profile/"+imagename+".jpg";
+            student.setImgUrl(temp);
+        }
+        else {
+            student.setImgUrl(jsonNode.get("imgUrl").textValue());
+        }
+
         String flag = studentService.updateURL(student);
         return flag;
     }
@@ -82,5 +120,35 @@ public class StudentController {
         String flag = studentService.updateStatus(complaint.getId());
         System.out.println(flag);
         return  flag;
+    }
+
+    @RequestMapping(value = "/pullDemand",method = RequestMethod.POST)
+    public String sendMail(@RequestBody JsonNode jsonNode){
+        Student requester = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
+        Student owner = studentService.findStudentByRollnumber(jsonNode.get("ownerEnrollNo").textValue());
+
+        studentService.sendEmail(owner,requester);
+
+        return "mail send";
+    }
+
+    @GetMapping("/downloadFile/profile/{fileName:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) throws IOException {
+        // Load file as Resource
+        Resource resource = studentService.loadFileAsResource(fileName);
+
+        // Try to determine file's content type
+        String contentType = null;
+        contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+
+        // Fallback to the default content type if type could not be determined
+        if(contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
     }
 }

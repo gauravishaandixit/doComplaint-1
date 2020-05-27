@@ -21,6 +21,7 @@ public class Student {
     private String password;
     private String roomnumber;
     private String mobilenumber;
+    private String email;
 
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
@@ -132,4 +133,11 @@ public class Student {
         this.complaints = complaints;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }
