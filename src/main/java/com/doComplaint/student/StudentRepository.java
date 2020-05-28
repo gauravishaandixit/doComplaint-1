@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface StudentRepository extends CrudRepository<Student, String> {
 
-    Student findStudentByRollnumberAndPassword(String username, String password);
+    Student findStudentByRollnumberAndPassword(String rollnumber, String password);
     Student findStudentByUsername(String username);
     Student findStudentByRollnumber(String rollnumber);
 }

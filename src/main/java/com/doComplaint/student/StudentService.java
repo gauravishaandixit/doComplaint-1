@@ -2,6 +2,7 @@ package com.doComplaint.student;
 
 import com.doComplaint.complaints.Complaint;
 import com.doComplaint.complaints.ComplaintService;
+import com.doComplaint.demand.Demand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -23,7 +24,8 @@ public class StudentService {
     ComplaintService complaintService;
 
     private JavaMailSender javaMailSender;
-    private Path fileStorageLocation = Paths.get("/zprojectimages/profile/");
+
+
 
     @Autowired
     public StudentService(JavaMailSender javaMailSender){
@@ -42,10 +44,10 @@ public class StudentService {
         if(student1 == null)
         {
             studentRepository.save(student);
-            return false;
+            return true;
         }
         else
-            return true;
+            return false;
     }
 
     public Student findStudentByRollnumber(String rollnumber)
@@ -79,14 +81,17 @@ public class StudentService {
         return student.getRollnumber();
     }
 
-    public void sendEmail(Student owner,Student requester){
+    public void sendEmail(Student owner, Student requester, Demand demand){
         String email = requester.getEmail();
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(email);
-        mailMessage.setSubject("demand accepted");
+        mailMessage.setSubject("request accepted for item" + demand.getItem_name());
 
-        String mailContent = "your request is accepted, details of owner is followed \n";
+        String mailContent = "your request is accepted, details of item \n";
+        mailContent += "itemname: " + demand.getItem_name() + "\n";
+        mailContent += "description: " + demand.getShortDesc() + "\n";
+        mailContent += "\n details of owner who accepted your request \n";
         mailContent += "username: " + owner.getUsername() + "\n";
         mailContent += "roomno: " + owner.getRoomnumber() + "\n";
         mailContent += "email: " + owner.getEmail() + "\n";
@@ -99,9 +104,10 @@ public class StudentService {
     }
 
     public Resource loadFileAsResource(String fileName) throws MalformedURLException {
-
-        Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+        Path fileStorageLocation = Paths.get("/zprojectimages/profile/");
+        Path filePath = fileStorageLocation.resolve(fileName).normalize();
         Resource resource = new UrlResource(filePath.toUri());
+        //System.out.println(resource);
         if(resource.exists()) {
             return resource;
         } else {

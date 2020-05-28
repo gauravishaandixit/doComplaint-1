@@ -2,6 +2,8 @@ package com.doComplaint.student;
 
 
 import com.doComplaint.complaints.Complaint;
+import com.doComplaint.demand.Demand;
+import com.doComplaint.demand.DemandService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -31,6 +33,8 @@ public class StudentController {
 
     @Autowired
     StudentService studentService;
+    @Autowired
+    DemandService demandService;
 
     @RequestMapping(value = "/logincheck", method = RequestMethod.POST)
     String checkLogin(@RequestBody Student student)
@@ -87,7 +91,7 @@ public class StudentController {
             File fileToSave = new File("/zprojectimages/profile/"+imagename+".jpg");
             Files.copy(inputStream,fileToSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            String temp = "http://172.17.0.2:8090/downloadFile/profile/"+imagename+".jpg";
+            String temp = "http://172.17.0.2:8090/student/downloadFile/profile/"+imagename+".jpg";
             student.setImgUrl(temp);
         }
         else {
@@ -126,8 +130,9 @@ public class StudentController {
     public String sendMail(@RequestBody JsonNode jsonNode){
         Student requester = studentService.findStudentByRollnumber(jsonNode.get("enrollNo").textValue());
         Student owner = studentService.findStudentByRollnumber(jsonNode.get("ownerEnrollNo").textValue());
+        Demand demand = demandService.findById(jsonNode.get("itemId").asLong());
 
-        studentService.sendEmail(owner,requester);
+        studentService.sendEmail(owner,requester,demand);
 
         return "mail send";
     }
