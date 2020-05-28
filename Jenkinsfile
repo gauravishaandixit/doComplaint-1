@@ -1,6 +1,6 @@
 pipeline {
   environment {
-    registry = "dhruvin32/docomplaintbackend"
+    registry = "vatsal199/docomplaintbackend"
     registryCredential = 'docker-hub-credentials'
     dockerImage = ''
     dockerImageLatest = ''
@@ -9,12 +9,17 @@ pipeline {
   stages {
     stage('Cloning Git Backend') {
       steps {
-        git 'https://github.com/dhruvin32/doComplaint.git'
+        git 'https://github.com/vatsal199/doComplaint.git'
       }
+    }
+    stage('Testing Project'){
+         steps {
+             sh 'mvn clean test'
+         }
     }
     stage('Build Executable Jar'){
         steps {
-             sh 'mvn clean test package'
+             sh 'mvn package'
         }
     }
 
@@ -26,7 +31,7 @@ pipeline {
          }
        }
     }
-    stage('Deploy Image') {
+    stage('Push Image') {
       steps{
         script {
           docker.withRegistry( '', registryCredential ) {
@@ -39,6 +44,19 @@ pipeline {
     stage('Remove Unused docker image') {
       steps{
         sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+    stage('Deploy On Node') {
+      steps{
+          step([
+             $class:"RundeckNotifier",
+             includeRundeckLogs:true,
+             jobId: "9f117bd1-3f7e-465d-8c04-441c30f933d1",
+             rundeckInstance: "RundeckConf",
+             shouldFailTheBuild: true,
+             shouldWaitForRundeckJob: true,
+             tailLog: true
+          ])
       }
     }
 
